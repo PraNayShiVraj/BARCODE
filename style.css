@@ -513,6 +513,43 @@ footer a {
     text-decoration: none;
 }
 
+/* Result Card Header Actions */
+.card-header-actions {
+    padding: 1.5rem 2rem 0;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 8px;
+}
+
+.icon-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.icon-btn svg {
+    transition: transform 0.3s ease;
+}
+
+.icon-btn:hover svg {
+    transform: translateX(-3px);
+}
+
+.result-actions {
+    padding: 0 2rem 2rem;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
     .product-header {

@@ -15,6 +15,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let videoInputDevices = [];
     let currentDeviceIndex = 0;
     
+    // Result & Error Controls
+    const backHomeBtn = document.getElementById('back-home-btn');
+    const headerBackBtn = document.getElementById('header-back-btn');
+    const errorBackBtn = document.getElementById('error-back-btn');
+    
     // Barcode Reader instance with optimized hints
     const hints = new Map();
     hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
@@ -60,6 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
     openCameraBtn.addEventListener('click', startCamera);
     closeCameraBtn.addEventListener('click', stopCamera);
     switchCameraBtn.addEventListener('click', switchCamera);
+    
+    // Navigation Control
+    backHomeBtn.addEventListener('click', showHome);
+    headerBackBtn.addEventListener('click', showHome);
+    errorBackBtn.addEventListener('click', showHome);
 
     async function startCamera() {
         try {
@@ -234,5 +244,12 @@ document.addEventListener('DOMContentLoaded', () => {
         errorSection.classList.add('hidden');
         resultSection.classList.add('hidden');
         cameraSection.classList.add('hidden');
+    }
+
+    function showHome() {
+        hideAll();
+        uploadSection.classList.remove('hidden');
+        // Reset any temporary states if needed
+        barcodeInput.value = ''; // Clear file input
     }
 });
