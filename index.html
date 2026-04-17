@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkanIt | Smart Barcode Product Finder</title>
+    <meta name="description" content="Instantly identify food products by uploading a barcode image. powered by Open Food Facts.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- ZXing library for Barcode Decoding -->
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <main class="container">
+        <header>
+            <h1 class="logo">Skan<span>It</span></h1>
+            <p class="subtitle">Upload a barcode image to uncover product secrets.</p>
+        </header>
+
+        <section class="upload-section" id="drop-zone">
+            <div class="upload-card">
+                <input type="file" id="barcode-input" accept="image/*" hidden>
+                <div class="upload-content" onclick="document.getElementById('barcode-input').click()">
+                    <div class="icon-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <h3>Drop your barcode here</h3>
+                    <p>or click to browse files</p>
+                </div>
+                <div class="upload-divider">
+                    <span>OR</span>
+                </div>
+                <button id="open-camera-btn" class="camera-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    Scan with Camera
+                </button>
+            </div>
+        </section>
+
+        <section id="camera-section" class="hidden">
+            <div class="camera-card">
+                <div class="video-container">
+                    <video id="video-preview"></video>
+                    <div class="scanner-overlay">
+                        <div class="scanner-box">
+                            <div class="scanner-line"></div>
+                            <div class="corner top-left"></div>
+                            <div class="corner top-right"></div>
+                            <div class="corner bottom-left"></div>
+                            <div class="corner bottom-right"></div>
+                        </div>
+                        <p class="scan-hint">Align barcode within the frame</p>
+                    </div>
+                </div>
+                <div class="camera-controls">
+                    <button id="switch-camera-btn" class="control-btn" title="Switch Camera">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    </button>
+                    <button id="close-camera-btn" class="control-btn close" title="Close Camera">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="loading-section hidden" id="loading">
+            <div class="loader"></div>
+            <p>Decoding barcode and fetching data...</p>
+        </section>
+
+        <section class="error-section hidden" id="error-display">
+            <div class="error-card">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <p id="error-message">Could not detect a barcode in this image.</p>
+                <button onclick="location.reload()" class="retry-btn">Try Another</button>
+            </div>
+        </section>
+
+        <section class="result-section hidden" id="result-display">
+            <div class="product-card">
+                <div class="product-header">
+                    <div class="product-image-container">
+                        <img id="product-img" src="" alt="Product Image">
+                    </div>
+                    <div class="product-titles">
+                        <h2 id="product-name">Product Name</h2>
+                        <p id="product-brand">Brand Name</p>
+                        <div id="nutriscore-badge" class="badge">Nutri-Score: <span>?</span></div>
+                    </div>
+                </div>
+                
+                <div class="product-details">
+                    <div class="detail-item">
+                        <span class="label">Barcode</span>
+                        <span class="value" id="barcode-value">1234567890</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Categories</span>
+                        <span class="value" id="product-categories">Unknown</span>
+                    </div>
+                </div>
+
+                <div class="ingredients-section">
+                    <h3>Ingredients</h3>
+                    <p id="product-ingredients">Loading ingredients...</p>
+                </div>
+
+                <button onclick="location.reload()" class="scan-again-btn">Scan Another Product</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Powered by <a href="https://world.openfoodfacts.org/" target="_blank">Open Food Facts</a></p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
