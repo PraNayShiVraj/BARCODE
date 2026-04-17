@@ -14,11 +14,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let videoInputDevices = [];
     let currentDeviceIndex = 0;
+    let navigationSource = 'home'; // Tracks whether user came from scan or search
     
     // Result & Error Controls
     const backHomeBtn = document.getElementById('back-home-btn');
     const headerBackBtn = document.getElementById('header-back-btn');
     const errorBackBtn = document.getElementById('error-back-btn');
+
+    // Search Controls
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
+    const searchResultsSection = document.getElementById('search-results-section');
+    const searchResultsGrid = document.getElementById('search-results-grid');
+    const clearSearchBtn = document.getElementById('clear-search-btn');
     
     // Barcode Reader instance with optimized hints
     const hints = new Map();
@@ -68,8 +76,26 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Navigation Control
     backHomeBtn.addEventListener('click', showHome);
-    headerBackBtn.addEventListener('click', showHome);
+    headerBackBtn.addEventListener('click', () => {
+        if (navigationSource === 'search') {
+            hideAll();
+            searchResultsSection.classList.remove('hidden');
+        } else {
+            showHome();
+        }
+    });
     errorBackBtn.addEventListener('click', showHome);
+
+    // Search Event Listeners
+    searchBtn.addEventListener('click', () => performSearch(searchInput.value));
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performSearch(searchInput.value);
+    });
+    clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchResultsSection.classList.add('hidden');
+        uploadSection.classList.remove('hidden');
+    });
 
     async function startCamera() {
         try {
@@ -104,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Barcode detected via camera:', result.text);
                 // Immediately stop camera to prevent duplicate scans
                 stopCamera();
+                navigationSource = 'home';
                 showLoading();
                 await fetchProductData(result.text);
             }
@@ -140,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (barcode) {
                 console.log('Barcode detected:', barcode);
+                navigationSource = 'home';
                 await fetchProductData(barcode);
             } else {
                 showError('Could not detect a clear barcode in this image. Please ensure the barcode is well-lit and in focus.');
@@ -198,6 +226,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function performSearch(query) {
+        const trimmedQuery = query.trim();
+        if (!trimmedQuery) return;
+        
+        navigationSource = 'search';
+        showLoading();
+        // Using OpenFoodFacts Search API
+        const searchUrl = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(trimmedQuery)}&search_simple=1&action=process&json=1&page_size=24`;
+        
+        try {
+            const response = await fetch(searchUrl);
+            const data = await response.json();
+            
+            if (data.products && data.products.length > 0) {
+                displaySearchResults(data.products);
+            } else {
+                showError(`No products found matching "${trimmedQuery}". Try a different search term.`);
+            }
+        } catch (err) {
+            console.error('Search error:', err);
+            showError('Failed to perform search. Please check your connection.');
+        }
+    }
+
+    function displaySearchResults(products) {
+        searchResultsGrid.innerHTML = '';
+        
+        products.forEach(product => {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            
+            // Handle image fallback
+            const imageUrl = product.image_small_url || product.image_url || 'https://via.placeholder.com/150?text=No+Image';
+            
+            card.innerHTML = `
+                <div class="result-card-img">
+                    <img src="${imageUrl}" alt="${product.product_name || 'Product'}">
+                </div>
+                <div class="result-card-info">
+                    <h4>${product.product_name || 'Unknown Product'}</h4>
+                    <p>${product.brands || 'Unknown Brand'}</p>
+                </div>
+            `;
+            
+            card.addEventListener('click', () => {
+                displayProduct(product, product.code || 'N/A');
+            });
+            
+            searchResultsGrid.appendChild(card);
+        });
+        
+        hideAll();
+        searchResultsSection.classList.remove('hidden');
+        window.scrollTo({ top: searchResultsSection.offsetTop - 100, behavior: 'smooth' });
+    }
+
     function displayProduct(product, barcode) {
         document.getElementById('product-name').textContent = product.product_name || 'Unknown Product';
         document.getElementById('product-brand').textContent = product.brands || 'Unknown Brand';
@@ -244,6 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
         errorSection.classList.add('hidden');
         resultSection.classList.add('hidden');
         cameraSection.classList.add('hidden');
+        searchResultsSection.classList.add('hidden');
     }
 
     function showHome() {

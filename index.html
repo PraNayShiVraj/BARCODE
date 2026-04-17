@@ -21,8 +21,26 @@
     <main class="container">
         <header>
             <h1 class="logo">Skan<span>It</span></h1>
-            <p class="subtitle">Upload a barcode image to uncover product secrets.</p>
+            <p class="subtitle">Search for products or scan a barcode to uncover secrets.</p>
+            <div class="search-container">
+                <div class="search-bar">
+                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="search-input" placeholder="Search by product name...">
+                    <button id="search-btn">Search</button>
+                </div>
+            </div>
         </header>
+
+        <section id="search-results-section" class="hidden">
+            <div class="results-header">
+                <h3>Search Results</h3>
+                <button class="text-btn" id="clear-search-btn">Clear All</button>
+            </div>
+            <div id="search-results-grid" class="results-grid">
+                <!-- Results cards will be injected here -->
+            </div>
+        </section>
+
 
         <section class="upload-section" id="drop-zone">
             <div class="upload-card">
